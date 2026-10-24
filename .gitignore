@@ -1,0 +1,15 @@
+node_modules/
+**/node_modules/
+**/dist/
+**/.env
+**/.env.*
+!**/.env.example
+*.log
+.DS_Store
+
+# Local backups and helper scripts
+**/*.backup_*
+**/*.before_*
+backend/add_product_update_route.py
+frontend/add_product_fields.py
+frontend/connect_add_product.py

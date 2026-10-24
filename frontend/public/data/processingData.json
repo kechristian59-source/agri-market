@@ -1,0 +1,132 @@
+[
+  {
+    "crop": "Tomato",
+    "processedProducts": [
+      "Tomato paste",
+      "Tomato sauce",
+      "Ketchup",
+      "Tomato juice"
+    ],
+    "processor": "Ngoma Tomato Processing Plant Ltd",
+    "location": "Ngoma District, Rwanda",
+    "source": "NTPP"
+  },
+  {
+    "crop": "Tomato",
+    "processedProducts": [
+      "Tomato paste"
+    ],
+    "processor": "SORWATOM Ltd",
+    "location": "Rwanda",
+    "source": "NIRDA / RSB"
+  },
+  {
+    "crop": "Cassava",
+    "processedProducts": [
+      "Fine cassava flour"
+    ],
+    "processor": "Kinazi Cassava Plant Ltd",
+    "location": "Ruhango District, Rwanda",
+    "source": "RSB",
+    "phone": "+250 724 797 703",
+    "email": "p.bahati@kcp.rw",
+    "website": "https://kcp.rw/contact-us/",
+    "contactSource": "Kinazi official website and RSB"
+  },
+  {
+    "crop": "Rice",
+    "processedProducts": [
+      "Milled white rice"
+    ],
+    "processor": "Mukunguri Rice Promotion & Investment Company Ltd",
+    "location": "Rwanda",
+    "source": "RSB"
+  },
+  {
+    "crop": "Rice",
+    "processedProducts": [
+      "Milled rice"
+    ],
+    "processor": "Mashyuza Rice Mill Ltd",
+    "location": "Rwanda",
+    "source": "RSB"
+  },
+  {
+    "crop": "Maize",
+    "processedProducts": [
+      "Maize flour"
+    ],
+    "processor": "ZEAN Ltd",
+    "location": "Rwanda",
+    "source": "RSB"
+  },
+  {
+    "crop": "Maize",
+    "processedProducts": [
+      "Maize flour"
+    ],
+    "processor": "Mahwi Grain Millers Ltd",
+    "location": "Rwanda",
+    "source": "RSB"
+  },
+  {
+    "crop": "Maize",
+    "processedProducts": [
+      "Maize flour"
+    ],
+    "processor": "Mukunguri Rice Promotion & Investment Company Ltd",
+    "location": "Rwanda",
+    "source": "RSB"
+  },
+  {
+    "crop": "Maize",
+    "processedProducts": [
+      "Maize flour"
+    ],
+    "processor": "NJK Company Ltd",
+    "location": "Rwanda",
+    "source": "RSB"
+  },
+  {
+    "crop": "Fruit",
+    "processedProducts": [
+      "Fruit drinks",
+      "Fruit nectar",
+      "Fruit juice"
+    ],
+    "processor": "Inyange Industries",
+    "location": "Rwanda",
+    "source": "RSB",
+    "phone": "+250 788 161 900",
+    "email": "info@inyangeindustries.com",
+    "website": "https://mail.inyangeindustries.com/contact-us",
+    "contactSource": "Inyange official website"
+  },
+  {
+    "crop": "Fruit",
+    "processedProducts": [
+      "Fruit jam",
+      "Yoghurt products"
+    ],
+    "processor": "Ishyo Foods Ltd",
+    "location": "Rwanda",
+    "source": "RSB",
+    "phone": "+250 788 759 097",
+    "email": "info@ishyofoods.rw",
+    "website": "https://ishyofoods.rw/contact/",
+    "contactSource": "Ishyo official website"
+  },
+  {
+    "crop": "Grain",
+    "processedProducts": [
+      "Flour products"
+    ],
+    "processor": "Bakhresa Grain Milling Rwanda Ltd",
+    "location": "Rwanda",
+    "source": "RSB",
+    "phone": "+250 783 001 968",
+    "email": "bgmrwanda@bakhresa.com",
+    "website": "https://bakhresa.com/bakhresa-grain-milling-rwanda-ltd/",
+    "contactSource": "Bakhresa official website and RSB"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "name": "Agri Market Rwanda",
+  "short_name": "Agri Market",
+  "description": "Marketplace and agricultural insights for Rwanda farmers, buyers and processors.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f8f3",
+  "theme_color": "#16823b",
+  "icons": [
+    { "src": "./icons/agri-market.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
