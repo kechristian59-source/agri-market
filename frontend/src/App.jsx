@@ -1336,12 +1336,12 @@ useEffect(() => {
       {screen === "home" && (
         <div style={{ ...styles.container, margin: "0 auto", padding: "20px 16px", textAlign: "left" }}>
           <div style={{ margin: "4px 0 20px" }}>
-            <p style={{ color: "#16823b", fontSize: "13px", fontWeight: 700, margin: "0 0 7px" }}>{t("appName")}</p>
+            <p style={{ color: "#16823b", fontSize: "13px", fontWeight: 700, margin: "0 0 7px" }}>AGRI MARKET</p>
             <h2 style={{ fontSize: "25px", lineHeight: 1.25, margin: "0 0 8px", color: "#153b25" }}>
-              {t("welcome")} {account.name || t("welcomeFallback")}!
+              Welcome {account.name || "to Agri Market"}!
             </h2>
             <p style={{ color: "#607166", margin: 0, fontSize: "14px" }}>
-              {t("homeSubtitle")}
+              Find produce, explore agricultural information, and add value to what you grow.
             </p>
           </div>
 
@@ -1351,22 +1351,22 @@ useEffect(() => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") setScreen("products"); }}
-              placeholder="🔎 Shaka imyaka cyangwa ibicuruzwa..."
+              placeholder="🔎 Search crops or products..."
               style={{ ...styles.input, flex: 1, minWidth: 0, margin: 0, borderRadius: "14px", padding: "14px 12px", border: "1px solid #dce7de", background: "#fff" }}
             />
             <button onClick={() => setScreen("products")} style={{ background: "#16823b", color: "#fff", border: 0, borderRadius: "14px", padding: "0 16px", fontWeight: 700, cursor: "pointer" }}>
-              Shaka
+              Search
             </button>
           </div>
 
           <button onClick={() => setScreen("products")} style={{ width: "100%", textAlign: "left", border: 0, borderRadius: "20px", padding: "20px", color: "#fff", background: "linear-gradient(120deg,#126b35,#22994d)", marginBottom: "22px", cursor: "pointer", boxShadow: "0 8px 20px rgba(22,130,59,.16)" }}>
             <div style={{ fontSize: "12px", opacity: .9, marginBottom: "8px" }}>AGRI MARKET • RWANDA</div>
-            <div style={{ fontSize: "22px", fontWeight: 800, lineHeight: 1.3 }}>Umusaruro wawe, amahirwe mashya 🌾</div>
-            <div style={{ fontSize: "13px", marginTop: "8px" }}>Reba ibicuruzwa biri ku isoko →</div>
+            <div style={{ fontSize: "22px", fontWeight: 800, lineHeight: 1.3 }}>Your Harvest, New Opportunities 🌾</div>
+            <div style={{ fontSize: "13px", marginTop: "8px" }}>Explore Products on the Market →</div>
           </button>
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <h3 style={{ margin: 0, color: "#183d28", fontSize: "18px" }}>Serivisi z’ingenzi</h3>
+            <h3 style={{ margin: 0, color: "#183d28", fontSize: "18px" }}>Key Services</h3>
             <span style={{ fontSize: "12px", color: "#6a7d70" }}>Agri Market</span>
           </div>
 
@@ -1374,36 +1374,36 @@ useEffect(() => {
             <button onClick={() => setScreen("crops")} style={{ textAlign: "left", border: "1px solid #e2ece4", borderRadius: "17px", background: "#fff", padding: "16px 13px", minHeight: "135px", cursor: "pointer", color: "#1a3b28" }}>
               <div style={{ fontSize: "29px", marginBottom: "10px" }}>🌱</div>
               <strong style={{ display: "block", fontSize: "15px" }}>Smart Crop Recommendations</strong>
-              <span style={{ display: "block", fontSize: "12px", color: "#68786d", marginTop: "6px", lineHeight: 1.5 }}>Reba imyaka n’ibihe by’ihinga</span>
+              <span style={{ display: "block", fontSize: "12px", color: "#68786d", marginTop: "6px", lineHeight: 1.5 }}>Explore crops and growing seasons</span>
             </button>
             <button onClick={() => setScreen("insights")} style={{ textAlign: "left", border: "1px solid #e2ece4", borderRadius: "17px", background: "#fff", padding: "16px 13px", minHeight: "135px", cursor: "pointer", color: "#1a3b28" }}>
               <div style={{ fontSize: "29px", marginBottom: "10px" }}>📊</div>
               <strong style={{ display: "block", fontSize: "15px" }}>Data & Insights</strong>
-              <span style={{ display: "block", fontSize: "12px", color: "#68786d", marginTop: "6px", lineHeight: 1.5 }}>Amakuru y’ubuhinzi ashingiye kuri NISR</span>
+              <span style={{ display: "block", fontSize: "12px", color: "#68786d", marginTop: "6px", lineHeight: 1.5 }}>Agricultural data and insights from NISR</span>
             </button>
             <button onClick={() => setScreen("processing")} style={{ textAlign: "left", border: "1px solid #e2ece4", borderRadius: "17px", background: "#fff", padding: "16px 13px", minHeight: "135px", cursor: "pointer", color: "#1a3b28" }}>
               <div style={{ fontSize: "29px", marginBottom: "10px" }}>🏭</div>
               <strong style={{ display: "block", fontSize: "15px" }}>Processing & Value Addition</strong>
-              <span style={{ display: "block", fontSize: "12px", color: "#68786d", marginTop: "6px", lineHeight: 1.5 }}>Uburyo bwo gutunganya umusaruro</span>
+              <span style={{ display: "block", fontSize: "12px", color: "#68786d", marginTop: "6px", lineHeight: 1.5 }}>Methods for processing and adding value to produce</span>
             </button>
             <button onClick={() => setScreen("products")} style={{ textAlign: "left", border: "1px solid #e2ece4", borderRadius: "17px", background: "#fff", padding: "16px 13px", minHeight: "135px", cursor: "pointer", color: "#1a3b28" }}>
               <div style={{ fontSize: "29px", marginBottom: "10px" }}>🧺</div>
-              <strong style={{ display: "block", fontSize: "15px" }}>Isoko ry’ibicuruzwa</strong>
-              <span style={{ display: "block", fontSize: "12px", color: "#68786d", marginTop: "6px", lineHeight: 1.5 }}>Shaka cyangwa ushyireho umusaruro</span>
+              <strong style={{ display: "block", fontSize: "15px" }}>Product Marketplace</strong>
+              <span style={{ display: "block", fontSize: "12px", color: "#68786d", marginTop: "6px", lineHeight: 1.5 }}>Find products or list your produce</span>
             </button>
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <h3 style={{ margin: 0, color: "#183d28", fontSize: "18px" }}>Ibikorwa byawe</h3>
-            <span style={{ fontSize: "12px", color: "#68786d" }}>{t("yourRole")}: {role || t("user")}</span>
+            <h3 style={{ margin: 0, color: "#183d28", fontSize: "18px" }}>Your Activities</h3>
+            <span style={{ fontSize: "12px", color: "#68786d" }}>Your role: {role || "User"}</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "10px", marginBottom: "18px" }}>
-            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("sellerDashboard")}>📦 {t("myProducts")}</button>
+            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("sellerDashboard")}>📦 My Products</button>
             <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("orders")}>📋 My Orders</button>
-            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("profile")}>👤 {t("myProfile")}</button>
-            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("settings")}>⚙️ {t("settings")}</button>
-            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => { setChatMode("list"); setScreen("chat"); }}>💬 {t("chat")}</button>
-            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("help")}>❓ {t("helpSupport")}</button>
+            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("profile")}>👤 My Profile</button>
+            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("settings")}>⚙️ Settings</button>
+            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => { setChatMode("list"); setScreen("chat"); }}>💬 Chat</button>
+            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("help")}>❓ Help & Support</button>
           </div>
 
           <button style={{ ...styles.secondaryButton, width: "100%" }} onClick={() => {
@@ -1412,7 +1412,7 @@ useEffect(() => {
             setRole("");
             setScreen("welcome");
           }}>
-            {t("logout")}
+            Log Out
           </button>
         </div>
       )}
