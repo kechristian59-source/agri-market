@@ -18,6 +18,9 @@ const translations = {
     backHome: "← Subira kuri Home",
     home: "Home",
     welcome: "Murakaza neza",
+    appName: "ISOKO RY’UBUHINZI",
+    homeSubtitle: "Shaka umusaruro, menya amakuru y’ubuhinzi kandi wongere agaciro k’ibyo uhinga.",
+    welcomeFallback: "kuri Agri Market",
     yourRole: "Uruhare rwawe",
     user: "Umukoresha",
     search: "Shakisha",
@@ -169,6 +172,9 @@ const translations = {
     backHome: "← Back to Home",
     home: "Home",
     welcome: "Welcome",
+    appName: "AGRI MARKET",
+    homeSubtitle: "Find produce, explore agricultural information, and add value to what you grow.",
+    welcomeFallback: "to Agri Market",
     yourRole: "Your role",
     user: "User",
     search: "Search",
@@ -319,6 +325,9 @@ const translations = {
     backHome: "← Retour à l'accueil",
     home: "Accueil",
     welcome: "Bienvenue",
+    appName: "MARCHÉ AGRICOLE",
+    homeSubtitle: "Trouvez des produits agricoles, consultez les informations agricoles et valorisez vos récoltes.",
+    welcomeFallback: "sur Agri Market",
     yourRole: "Votre rôle",
     user: "Utilisateur",
     search: "Rechercher",
@@ -1327,12 +1336,12 @@ useEffect(() => {
       {screen === "home" && (
         <div style={{ ...styles.container, margin: "0 auto", padding: "20px 16px", textAlign: "left" }}>
           <div style={{ margin: "4px 0 20px" }}>
-            <p style={{ color: "#16823b", fontSize: "13px", fontWeight: 700, margin: "0 0 7px" }}>🇷🇼 ISOKO RY’UBUHINZI</p>
+            <p style={{ color: "#16823b", fontSize: "13px", fontWeight: 700, margin: "0 0 7px" }}>{t("appName")}</p>
             <h2 style={{ fontSize: "25px", lineHeight: 1.25, margin: "0 0 8px", color: "#153b25" }}>
-              {t("welcome")} {account.name || "kuri Agri Market"}!
+              {t("welcome")} {account.name || t("welcomeFallback")}!
             </h2>
             <p style={{ color: "#607166", margin: 0, fontSize: "14px" }}>
-              Shaka umusaruro, menya amakuru y’ubuhinzi kandi wongere agaciro k’ibyo uhinga.
+              {t("homeSubtitle")}
             </p>
           </div>
 
