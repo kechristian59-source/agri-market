@@ -16,9 +16,9 @@ async function agriApi(path, options = {}) {
 }
 window.agriMarketAuth = {
   signup: (payload) => agriApi('/auth/signup', { method: 'POST', body: JSON.stringify(payload) }),
-  requestOtp: (phone, purpose = 'signup') => agriApi('/auth/request-otp', { method: 'POST', body: JSON.stringify({ phone, purpose }) }),
-  verifyOtp: (phone, code, purpose = 'signup') => agriApi('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ phone, code, purpose }) }),
-  resetPassword: (phone, code, newPassword) => agriApi('/auth/reset-password', { method: 'POST', body: JSON.stringify({ phone, code, newPassword }) }),
+  requestOtp: (email, purpose = 'signup') => agriApi('/auth/request-otp', { method: 'POST', body: JSON.stringify({ email, purpose }) }),
+  verifyOtp: (email, code, purpose = 'signup') => agriApi('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, code, purpose }) }),
+  resetPassword: (email, code, newPassword) => agriApi('/auth/reset-password', { method: 'POST', body: JSON.stringify({ email, code, newPassword }) }),
   login: async (phoneOrEmail, password) => {
     const result = await agriApi('/auth/login', { method: 'POST', body: JSON.stringify({ phone: phoneOrEmail, password }) });
     localStorage.setItem('agriMarketToken', result.token);

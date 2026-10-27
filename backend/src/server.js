@@ -18,26 +18,30 @@ const JWT_SECRET=process.env.JWT_SECRET;
 const pool=process.env.DATABASE_URL?new Pool({connectionString:process.env.DATABASE_URL}):null;
 if(process.env.NODE_ENV==='production'&&(!process.env.DATABASE_URL||!JWT_SECRET||JWT_SECRET.length<32))throw new Error('Production requires DATABASE_URL and JWT_SECRET of at least 32 characters');
 function normalizePhone(value){const raw=String(value||'').trim().replace(/[\s()-]/g,'');if(/^0[0-9]{9}$/.test(raw))return `+250${raw.slice(1)}`;if(/^250[0-9]{9}$/.test(raw))return `+${raw}`;if(/^\+?[1-9][0-9]{7,14}$/.test(raw))return raw.startsWith('+')?raw:`+${raw}`;return raw}
-const signupSchema=z.object({fullName:z.string().trim().min(2).max(160),phone:z.string().min(7).transform(normalizePhone).refine(v=>/^\+[1-9][0-9]{7,14}$/.test(v),'INVALID_PHONE'),email:z.string().email().optional().or(z.literal('')).transform(v=>v?v.toLowerCase():v),password:z.string().min(8).max(200),role:z.enum(['producer','buyer','processor'])});
+const signupSchema=z.object({fullName:z.string().trim().min(2).max(160),phone:z.string().min(7).transform(normalizePhone).refine(v=>/^\+[1-9][0-9]{7,14}$/.test(v),'INVALID_PHONE'),email:z.string().trim().email().transform(v=>v.toLowerCase()),password:z.string().min(8).max(200),role:z.enum(['producer','buyer','processor'])});
 function hashOtp(code){return crypto.createHash('sha256').update(code).digest('hex')}
 function otpMatches(code, expected){const actual=Buffer.from(hashOtp(code));const saved=Buffer.from(String(expected||''));return actual.length===saved.length&&crypto.timingSafeEqual(actual,saved)}
-async function deliverOtp(phone, code) {
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  const from = process.env.TWILIO_FROM;
-  const serviceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
-  if (sid && token && (from || serviceSid)) {
-    const body = new URLSearchParams({ To: phone, Body: `Agri Market verification code: ${code}. It expires in 5 minutes.` });
-    if (serviceSid) body.set('MessagingServiceSid', serviceSid); else body.set('From', from);
-    const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
-      method: 'POST', headers: { Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString('base64')}`, 'Content-Type': 'application/x-www-form-urlencoded' }, body
-    });
-    if (!response.ok) throw new Error(`SMS_PROVIDER_ERROR_${response.status}`);
-    return { channel: 'sms' };
+async function deliverOtp(email, code, purpose) {
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL;
+  if (!apiKey || !senderEmail) {
+    if (process.env.NODE_ENV === 'production') throw new Error('EMAIL_PROVIDER_NOT_CONFIGURED');
+    console.info(`[DEV ONLY] Agri Market OTP for ${email}: ${code}`);
+    return { channel: 'development', developmentCode: code };
   }
-  if (process.env.NODE_ENV === 'production') throw new Error('SMS_PROVIDER_NOT_CONFIGURED');
-  console.info(`[DEV ONLY] Agri Market OTP for ${phone}: ${code}`);
-  return { channel: 'development', developmentCode: code };
+  const purposeText = purpose === 'reset' ? 'password reset' : purpose === 'login' ? 'login' : 'account verification';
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': apiKey, 'Content-Type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({
+      sender: { name: process.env.BREVO_SENDER_NAME || 'Agri Market', email: senderEmail },
+      to: [{ email }],
+      subject: 'Agri Market verification code',
+      textContent: `Your Agri Market ${purposeText} code is ${code}. It expires in 5 minutes. If you did not request this code, ignore this email.`
+    })
+  });
+  if (!response.ok) throw new Error(`EMAIL_PROVIDER_ERROR_${response.status}`);
+  return { channel: 'email' };
 }
 function tokenFor(u){if(!JWT_SECRET)throw new Error('JWT_SECRET_NOT_CONFIGURED');return jwt.sign({sub:u.id,role:u.role},JWT_SECRET,{expiresIn:'7d'})}
 async function auth(req,res,next){try{const h=req.headers.authorization||'';const t=h.startsWith('Bearer ')?h.slice(7):'';if(!t||!JWT_SECRET)return res.status(401).json({error:'UNAUTHORIZED'});req.auth=jwt.verify(t,JWT_SECRET);next()}catch{return res.status(401).json({error:'INVALID_SESSION'})}}
@@ -46,39 +50,66 @@ function requireAdmin(req,res,next){if(req.auth?.role!=='admin')return res.statu
 app.get('/health',async(req,res)=>{if(!pool)return res.json({ok:true,database:'not_configured',version:'12.3.0'});try{await pool.query('select 1');res.json({ok:true,database:'connected',version:'12.3.0'})}catch{res.status(503).json({ok:false,database:'unavailable'})}});
 app.post('/api/auth/signup',requireDb,async(req,res)=>{const p=signupSchema.safeParse(req.body);if(!p.success)return res.status(400).json({error:'INVALID_INPUT'});const d=p.data;try{const exists=await pool.query('select id from users where phone=$1 or ($2<>\'\' and email=$2)',[d.phone,d.email||'']);if(exists.rowCount)return res.status(409).json({error:'ACCOUNT_ALREADY_EXISTS'});const hash=await bcrypt.hash(d.password,12);const r=await pool.query(`insert into users(role,full_name,phone,email,password_hash) values($1,$2,$3,$4,$5) returning id,role,full_name,phone,email,verified`,[d.role,d.fullName,d.phone,d.email||null,hash]);res.status(201).json({user:r.rows[0],message:'ACCOUNT_CREATED_REQUEST_OTP'})}catch(e){console.error('Signup database error:',e.code||'',e.message||'');res.status(500).json({error:'DATABASE_ERROR'})}});
 app.post('/api/auth/request-otp',requireDb,async(req,res)=>{
-  const phone=normalizePhone(req.body?.phone); const purpose=String(req.body?.purpose||'signup');
-  if(phone.length<7||!['signup','login','reset'].includes(purpose))return res.status(400).json({error:'INVALID_INPUT'});
+  const email=String(req.body?.email||'').trim().toLowerCase();
+  const purpose=String(req.body?.purpose||'signup');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!['signup','login','reset'].includes(purpose))return res.status(400).json({error:'INVALID_INPUT'});
   try {
-    const u=await pool.query('select id,verified from users where phone=$1',[phone]);
+    const u=await pool.query('select id,phone,verified from users where lower(email)=lower($1)',[email]);
     if(!u.rowCount)return res.json({ok:true,message:'IF_ACCOUNT_EXISTS_OTP_SENT'});
-    if(purpose==='signup' && u.rows[0].verified)return res.status(409).json({error:'ACCOUNT_ALREADY_VERIFIED'});
-    const recent=await pool.query("select count(*)::int as n from otp_codes where phone=$1 and created_at > now()-interval '15 minutes'",[phone]);
+    const user=u.rows[0];
+    if(purpose==='signup'&&user.verified)return res.status(409).json({error:'ACCOUNT_ALREADY_VERIFIED'});
+    const recent=await pool.query("select count(*)::int as n from otp_codes where user_id=$1 and purpose=$2 and created_at > now()-interval '15 minutes'",[user.id,purpose]);
     if(recent.rows[0].n>=3)return res.status(429).json({error:'OTP_RATE_LIMIT'});
     const code=crypto.randomInt(100000,1000000).toString();
-    const delivery=await deliverOtp(phone,code);
-    await pool.query('update otp_codes set consumed_at=now() where phone=$1 and purpose=$2 and consumed_at is null',[phone,purpose]);
-    await pool.query(`insert into otp_codes(user_id,phone,code_hash,purpose,expires_at) values($1,$2,$3,$4,now()+interval '5 minutes')`,[u.rows[0].id,phone,hashOtp(code),purpose]);
-    res.json({ok:true,message:delivery.channel==='sms'?'OTP_SENT':'DEVELOPMENT_OTP_CREATED',...(delivery.developmentCode?{developmentCode:delivery.developmentCode}: {})});
-  } catch(e) { if(String(e.message).includes('SMS_PROVIDER_NOT_CONFIGURED'))return res.status(503).json({error:'SMS_PROVIDER_NOT_CONFIGURED'}); return res.status(502).json({error:'OTP_DELIVERY_FAILED'}); }
+    await pool.query('update otp_codes set consumed_at=now() where user_id=$1 and purpose=$2 and consumed_at is null',[user.id,purpose]);
+    await pool.query("insert into otp_codes(user_id,phone,code_hash,purpose,expires_at) values($1,$2,$3,$4,now()+interval '5 minutes')",[user.id,user.phone,hashOtp(code),purpose]);
+    try {
+      const delivery=await deliverOtp(email,code,purpose);
+      return res.json({ok:true,message:delivery.channel==='email'?'OTP_SENT':'DEVELOPMENT_OTP_CREATED',...(delivery.developmentCode?{developmentCode:delivery.developmentCode}:{})});
+    } catch(e) {
+      await pool.query('update otp_codes set consumed_at=now() where user_id=$1 and purpose=$2 and consumed_at is null',[user.id,purpose]);
+      if(String(e.message).includes('EMAIL_PROVIDER_NOT_CONFIGURED'))return res.status(503).json({error:'EMAIL_PROVIDER_NOT_CONFIGURED'});
+      return res.status(502).json({error:'OTP_DELIVERY_FAILED'});
+    }
+  } catch(e) { console.error('OTP request failed:',e.code||''); return res.status(500).json({error:'OTP_REQUEST_FAILED'}); }
 });
-app.post('/api/auth/verify-otp',requireDb,async(req,res)=>{const phone=normalizePhone(req.body?.phone),code=String(req.body?.code||''),purpose=String(req.body?.purpose||'signup');if(phone.length<7||!/^\d{6}$/.test(code)||!['signup','login','reset'].includes(purpose))return res.status(400).json({error:'INVALID_INPUT'});const q=await pool.query(`select id,user_id,code_hash,expires_at,attempts from otp_codes where phone=$1 and purpose=$2 and consumed_at is null order by created_at desc limit 1`,[phone,purpose]);if(!q.rowCount)return res.status(400).json({error:'INVALID_OR_EXPIRED_OTP'});const o=q.rows[0];if(new Date(o.expires_at)<=new Date()||o.attempts>=5)return res.status(400).json({error:'INVALID_OR_EXPIRED_OTP'});await pool.query('update otp_codes set attempts=attempts+1 where id=$1',[o.id]);if(!otpMatches(code,o.code_hash))return res.status(400).json({error:'INVALID_OR_EXPIRED_OTP'});await pool.query('update otp_codes set consumed_at=now() where id=$1',[o.id]);if(purpose==='signup'||purpose==='login')await pool.query("update users set verified=true,verification_status='Verified',updated_at=now() where id=$1",[o.user_id]);res.json({ok:true,message:'OTP_VERIFIED'})});
-app.post('/api/auth/login',requireDb,async(req,res)=>{const identifier=String(req.body?.phone||'').trim(),phone=identifier.includes('@')?identifier.toLowerCase():normalizePhone(identifier),password=String(req.body?.password||'');const q=await pool.query('select id,full_name,phone,email,role,verified,password_hash from users where phone=$1 or lower(email)=lower($1) limit 1',[phone]);if(!q.rowCount||!(await bcrypt.compare(password,q.rows[0].password_hash)))return res.status(401).json({error:'INVALID_CREDENTIALS'});const u=q.rows[0];if(!u.verified)return res.status(403).json({error:'OTP_VERIFICATION_REQUIRED'});try{res.json({token:tokenFor(u),user:{id:u.id,fullName:u.full_name,phone:u.phone,email:u.email,role:u.role,verified:u.verified}})}catch{res.status(503).json({error:'AUTH_NOT_CONFIGURED'})}});
+app.post('/api/auth/verify-otp',requireDb,async(req,res)=>{
+  const email=String(req.body?.email||'').trim().toLowerCase(),code=String(req.body?.code||''),purpose=String(req.body?.purpose||'signup');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!/^[0-9]{6}$/.test(code)||!['signup','login','reset'].includes(purpose))return res.status(400).json({error:'INVALID_INPUT'});
+  try {
+    const u=await pool.query('select id from users where lower(email)=lower($1)',[email]);
+    if(!u.rowCount)return res.status(400).json({error:'INVALID_OR_EXPIRED_OTP'});
+    const q=await pool.query("select id,user_id,code_hash,expires_at,attempts from otp_codes where user_id=$1 and purpose=$2 and consumed_at is null order by created_at desc limit 1",[u.rows[0].id,purpose]);
+    if(!q.rowCount)return res.status(400).json({error:'INVALID_OR_EXPIRED_OTP'});
+    const o=q.rows[0];
+    if(new Date(o.expires_at)<=new Date()||o.attempts>=5)return res.status(400).json({error:'INVALID_OR_EXPIRED_OTP'});
+    await pool.query('update otp_codes set attempts=attempts+1 where id=$1',[o.id]);
+    if(!otpMatches(code,o.code_hash))return res.status(400).json({error:'INVALID_OR_EXPIRED_OTP'});
+    await pool.query('update otp_codes set consumed_at=now() where id=$1',[o.id]);
+    if(purpose==='signup'||purpose==='login')await pool.query("update users set verified=true,verification_status='Verified',updated_at=now() where id=$1",[o.user_id]);
+    return res.json({ok:true,message:'OTP_VERIFIED'});
+  } catch(e) { console.error('OTP verification failed:',e.code||''); return res.status(500).json({error:'OTP_VERIFICATION_FAILED'}); }
+});
 app.post('/api/auth/reset-password',requireDb,async(req,res)=>{
-  const phone=normalizePhone(req.body?.phone),code=String(req.body?.code||''),password=String(req.body?.newPassword||'');
-  if(phone.length<7||!/^\d{6}$/.test(code)||password.length<8)return res.status(400).json({error:'INVALID_INPUT'});
+  const email=String(req.body?.email||'').trim().toLowerCase(),code=String(req.body?.code||''),password=String(req.body?.newPassword||'');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!/^[0-9]{6}$/.test(code)||password.length<8)return res.status(400).json({error:'INVALID_INPUT'});
   const client=await pool.connect();
   try {
     await client.query('begin');
-    const q=await client.query(`select id,user_id,code_hash,expires_at,attempts from otp_codes where phone=$1 and purpose='reset' and consumed_at is null order by created_at desc limit 1 for update`,[phone]);
+    const user=await client.query('select id from users where lower(email)=lower($1)',[email]);
+    if(!user.rowCount){await client.query('rollback');return res.status(400).json({error:'INVALID_OR_EXPIRED_OTP'});}
+    const q=await client.query("select id,user_id,code_hash,expires_at,attempts from otp_codes where user_id=$1 and purpose='reset' and consumed_at is null order by created_at desc limit 1 for update",[user.rows[0].id]);
     if(!q.rowCount){await client.query('rollback');return res.status(400).json({error:'INVALID_OR_EXPIRED_OTP'});}
     const o=q.rows[0];
     if(new Date(o.expires_at)<=new Date()||o.attempts>=5||!otpMatches(code,o.code_hash)){await client.query('update otp_codes set attempts=attempts+1 where id=$1',[o.id]);await client.query('commit');return res.status(400).json({error:'INVALID_OR_EXPIRED_OTP'});}
     const hash=await bcrypt.hash(password,12);
     await client.query('update users set password_hash=$1,updated_at=now() where id=$2',[hash,o.user_id]);
     await client.query('update otp_codes set consumed_at=now() where id=$1',[o.id]);
-    await client.query('commit');res.json({ok:true,message:'PASSWORD_RESET'});
-  } catch { await client.query('rollback');res.status(500).json({error:'PASSWORD_RESET_FAILED'}); } finally {client.release();}
+    await client.query('commit');return res.json({ok:true,message:'PASSWORD_RESET'});
+  } catch { await client.query('rollback');return res.status(500).json({error:'PASSWORD_RESET_FAILED'}); } finally {client.release();}
 });
+app.post('/api/auth/login',requireDb,async(req,res)=>{const identifier=String(req.body?.phone||'').trim(),phone=identifier.includes('@')?identifier.toLowerCase():normalizePhone(identifier),password=String(req.body?.password||'');const q=await pool.query('select id,full_name,phone,email,role,verified,password_hash from users where phone=$1 or lower(email)=lower($1) limit 1',[phone]);if(!q.rowCount||!(await bcrypt.compare(password,q.rows[0].password_hash)))return res.status(401).json({error:'INVALID_CREDENTIALS'});const u=q.rows[0];if(!u.verified)return res.status(403).json({error:'OTP_VERIFICATION_REQUIRED'});try{res.json({token:tokenFor(u),user:{id:u.id,fullName:u.full_name,phone:u.phone,email:u.email,role:u.role,verified:u.verified}})}catch{res.status(503).json({error:'AUTH_NOT_CONFIGURED'})}});
+
 app.get('/api/auth/me',requireDb,auth,async(req,res)=>{const q=await pool.query('select id,full_name,phone,email,role,verified,verification_status from users where id=$1',[req.auth.sub]);if(!q.rowCount)return res.status(404).json({error:'USER_NOT_FOUND'});const u=q.rows[0];res.json({id:u.id,fullName:u.full_name,phone:u.phone,email:u.email,role:u.role,verified:u.verified,verificationStatus:u.verification_status})});
 app.get('/api/admin/me',requireDb,auth,requireAdmin,async(req,res)=>{const q=await pool.query('select id,full_name,phone,email,role,verified,verification_status from users where id=$1',[req.auth.sub]);if(!q.rowCount)return res.status(404).json({error:'USER_NOT_FOUND'});res.json(q.rows[0])});
 app.get('/api/admin/users',requireDb,auth,requireAdmin,async(req,res)=>{const q=await pool.query('select id,full_name,phone,email,role,verified,verification_status,created_at from users order by created_at desc');res.json(q.rows)});

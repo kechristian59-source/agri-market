@@ -91,7 +91,7 @@ const translations = {
     phoneNumber: "Numero ya telefone",
     enterEmail: "Email",
     password: "Ijambo ry'ibanga",
-    phoneVerification: "Kwemeza Telefone",
+    phoneVerification: "Kwemeza Email",
     enterOtp: "Shyiramo OTP",
     loginIdentifier: "Numero ya telefone cyangwa Email",
     forgotPassword: "Wibagiwe Ijambo ry'ibanga",
@@ -242,7 +242,7 @@ const translations = {
     phoneNumber: "Phone number",
     enterEmail: "Email",
     password: "Password",
-    phoneVerification: "Phone Verification",
+    phoneVerification: "Email Verification",
     enterOtp: "Enter OTP",
     loginIdentifier: "Phone number or Email",
     forgotPassword: "Forgot Password",
@@ -392,7 +392,7 @@ const translations = {
     phoneNumber: "Numéro de téléphone",
     enterEmail: "Email",
     password: "Mot de passe",
-    phoneVerification: "Vérification du téléphone",
+    phoneVerification: "Vérification de l’email",
     enterOtp: "Entrez le code OTP",
     loginIdentifier: "Numéro de téléphone ou Email",
     forgotPassword: "Mot de passe oublié",
@@ -986,13 +986,13 @@ useEffect(() => {
               try {
                 const apiRole = role === "Farmer" ? "producer" : role === "Buyer" ? "buyer" : "processor";
                 await window.agriMarketAuth.signup({ fullName: account.name.trim(), phone: account.phone.trim(), email: account.email.trim().toLowerCase(), password: account.password, role: apiRole });
-                setPendingOtp({ mode: "api", phone: account.phone.trim(), expiresAt: Date.now() + 5 * 60 * 1000, account: { ...account, phone: account.phone.trim(), email: account.email.trim().toLowerCase(), role, verified: false } });
+                setPendingOtp({ mode: "api", email: account.email.trim().toLowerCase(), expiresAt: Date.now() + 5 * 60 * 1000, account: { ...account, phone: account.phone.trim(), email: account.email.trim().toLowerCase(), role, verified: false } });
                 setOtpInput(""); setOtpAttempts(0); setScreen("verification");
                 try {
-                  const sent = await window.agriMarketAuth.requestOtp(account.phone.trim(), "signup");
+                  const sent = await window.agriMarketAuth.requestOtp(account.email.trim().toLowerCase(), "signup");
                   setPendingOtp((current) => current ? { ...current, expiresAt: Date.now() + 5 * 60 * 1000, developmentCode: sent.developmentCode } : current);
                   if (sent.developmentCode) alert(`DEVELOPMENT OTP: ${sent.developmentCode}\nNtuyikoreshe muri production.`);
-                  else alert("OTP yoherejwe kuri telefone yawe.");
+                  else alert("OTP yoherejwe kuri email yawe.");
                 } catch (error) { alert(`Konti yakozwe ariko OTP ntiyoherejwe: ${error.message}. Kanda 'Ongera wohereze OTP'.`); }
               } catch (error) { alert(`Registration yanze: ${error.message}`); }
               return;
@@ -1000,7 +1000,7 @@ useEffect(() => {
             const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 900000 + 100000);
             setPendingOtp({ mode: "demo", code, expiresAt: Date.now() + 5 * 60 * 1000, account: { ...account, phone: account.phone.trim(), email: account.email.trim().toLowerCase(), role, verified: false } });
             setOtpInput(""); setOtpAttempts(0); setScreen("verification");
-            alert(`DEMO OTP: ${code}\nIyi code igenewe prototype yo kugerageza gusa. Production isaba API na SMS provider.`);
+            alert(`DEMO OTP: ${code}\nIyi code igenewe prototype yo kugerageza gusa. Production isaba API na email provider.`);
           }}>
             Kora konti / Saba OTP
           </button>
@@ -1013,10 +1013,10 @@ useEffect(() => {
 
       {screen === "verification" && (
         <div style={styles.container}>
-          <h2>{t("phoneVerification")}</h2>
+          <h2>Kwemeza email</h2>
           <p>{t("enterOtp")}</p>
 
-          <p style={{ color: "#a15c00", fontSize: "13px" }}>{pendingOtp?.mode === "api" ? "OTP yoherejwe kuri telefone yawe; irangira mu minota 5." : "Prototype mode: OTP igaragara kuri demo gusa. Iyi si SMS nyayo."}</p>
+          <p style={{ color: "#a15c00", fontSize: "13px" }}>{pendingOtp?.mode === "api" ? "OTP yoherejwe kuri email yawe; irangira mu minota 5." : "Prototype mode: OTP igaragara kuri demo gusa. Iyi si SMS nyayo."}</p>
           <input style={styles.input} placeholder="Andika code y’imibare 6" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={otpInput} onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, "").slice(0, 6))} />
 
           <button style={styles.button} onClick={async () => {
@@ -1024,25 +1024,32 @@ useEffect(() => {
             if (Date.now() > pendingOtp.expiresAt) { setPendingOtp(null); setOtpInput(""); alert("OTP yarangiye. Ongera usabe code nshya."); setScreen("signup"); return; }
             if (otpAttempts >= 5) { setPendingOtp(null); setOtpInput(""); alert("Wagerageje inshuro nyinshi. Ongera utangire registration."); setScreen("signup"); return; }
             if (pendingOtp.mode === "api") {
-              try { await window.agriMarketAuth.verifyOtp(pendingOtp.phone, otpInput, "signup"); }
+              try { await window.agriMarketAuth.verifyOtp(pendingOtp.email, otpInput, "signup"); }
               catch (error) { setOtpAttempts((n) => n + 1); alert(`OTP ntiyemewe: ${error.message}`); return; }
             } else if (otpInput !== pendingOtp.code) { setOtpAttempts((n) => n + 1); alert(`OTP si yo. Usigaranye ${Math.max(0, 4 - otpAttempts)} attempts.`); return; }
             const verifiedAccount = { ...pendingOtp.account, verified: true };
+            setPendingOtp(null); setOtpInput("");
+            if (pendingOtp.mode === "api") {
+              setAccount({ name: "", phone: "", email: "", password: "", photo: "" });
+              setRole("");
+              alert("Email yawe yemejwe. Injira ukoresheje email na password.");
+              setScreen("login");
+              return;
+            }
             const savedAccounts = JSON.parse(localStorage.getItem("agriMarketAccounts") || "[]");
-            const safeAccount = { ...verifiedAccount };
-            if (pendingOtp.mode === "api") delete safeAccount.password;
-            localStorage.setItem("agriMarketAccounts", JSON.stringify([...savedAccounts, safeAccount]));
-            setAccount(pendingOtp.mode === "api" ? safeAccount : verifiedAccount); setPendingOtp(null); setOtpInput("");
-            alert(pendingOtp.mode === "api" ? "Konti yawe yemejwe na server." : "Konti yemejwe muri demo."); setScreen("role");
+            localStorage.setItem("agriMarketAccounts", JSON.stringify([...savedAccounts, verifiedAccount]));
+            setAccount(verifiedAccount);
+            alert("Konti yemejwe muri demo.");
+            setScreen("role");
           }}>
             Emeza OTP
           </button>
           {pendingOtp?.mode === "api" && <button style={styles.linkButton} onClick={async () => {
             try {
-              const sent = await window.agriMarketAuth.requestOtp(pendingOtp.phone, "signup");
+              const sent = await window.agriMarketAuth.requestOtp(pendingOtp.email, "signup");
               setPendingOtp((current) => current ? { ...current, expiresAt: Date.now() + 5 * 60 * 1000, developmentCode: sent.developmentCode } : current);
               setOtpAttempts(0); setOtpInput("");
-              if (sent.developmentCode) alert(`DEVELOPMENT OTP: ${sent.developmentCode}`); else alert("OTP nshya yoherejwe.");
+              if (sent.developmentCode) alert(`DEVELOPMENT OTP: ${sent.developmentCode}`); else alert("OTP nshya yoherejwe kuri email.");
             } catch (error) { alert(`Ntibyashobotse kohereza OTP: ${error.message}`); }
           }}>Ongera wohereze OTP</button>}
           <button style={styles.linkButton} onClick={() => { setPendingOtp(null); setOtpInput(""); setScreen("signup"); }}>Subira inyuma</button>
@@ -1134,19 +1141,19 @@ useEffect(() => {
         <div style={styles.container}>
           <h2>{t("forgotPassword")}</h2>
           <p>{t("resetPasswordText")}</p>
-          <p style={{ color: "#a15c00", fontSize: "13px" }}>{USE_API ? "OTP yoherezwa na server. Koresha numero ya telefone." : "Prototype mode: code igaragara kuri demo gusa; production isaba SMS provider na backend."}</p>
+          <p style={{ color: "#a15c00", fontSize: "13px" }}>{USE_API ? "OTP yoherezwa kuri email ya konti yawe." : "Prototype mode: code igaragara kuri demo gusa."}</p>
           <input id="forgotIdentifier" style={styles.input} placeholder={t("loginIdentifier")} />
           <input id="newPassword" style={styles.input} placeholder={t("newPassword")} type="password" autoComplete="new-password" />
           {!resetOtp ? (
             <button style={styles.button} onClick={async () => {
               const identifier = document.getElementById("forgotIdentifier").value.trim();
               if (USE_API) {
-                if (!/^\+?[0-9 ()-]{7,}$/.test(identifier)) { alert("Andika numero ya telefone, si email."); return; }
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) { alert("Andika email ya konti yawe."); return; }
                 try {
-                  const phone = identifier;
-                  const sent = await window.agriMarketAuth.requestOtp(phone, "reset");
-                  setResetOtp({ mode: "api", phone, expiresAt: Date.now() + 5 * 60 * 1000, identifier, developmentCode: sent.developmentCode }); setResetOtpInput("");
-                  if (sent.developmentCode) alert(`DEVELOPMENT RESET OTP: ${sent.developmentCode}`); else alert("OTP yo guhindura password yoherejwe kuri telefone.");
+                  const email = identifier.toLowerCase();
+                  const sent = await window.agriMarketAuth.requestOtp(email, "reset");
+                  setResetOtp({ mode: "api", email, expiresAt: Date.now() + 5 * 60 * 1000, identifier, developmentCode: sent.developmentCode }); setResetOtpInput("");
+                  if (sent.developmentCode) alert(`DEVELOPMENT RESET OTP: ${sent.developmentCode}`); else alert("OTP yo guhindura password yoherejwe kuri email.");
                 } catch (error) { alert(`OTP ntiyoherejwe: ${error.message}`); }
                 return;
               }
@@ -1156,7 +1163,7 @@ useEffect(() => {
               if (!savedAccount.phone) { alert("Konti nta nimero ya telefone ifite yo kwemeza."); return; }
               const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 900000 + 100000);
               setResetOtp({ mode: "demo", code, expiresAt: Date.now() + 5 * 60 * 1000, identifier }); setResetOtpInput("");
-              alert(`DEMO RESET OTP: ${code}\nIyi ni demo gusa; production isaba SMS provider.`);
+              alert(`DEMO RESET OTP: ${code}\nIyi ni demo gusa; production isaba email provider.`);
             }}>
               Saba OTP yo guhindura password
             </button>
@@ -1169,7 +1176,7 @@ useEffect(() => {
                 if (resetOtp.mode !== "api" && resetOtpInput !== resetOtp.code) { alert("OTP si yo."); return; }
                 if (newPassword.length < 8) { alert("Password igomba kugira nibura inyuguti 8."); return; }
                 if (resetOtp.mode === "api") {
-                  try { await window.agriMarketAuth.resetPassword(resetOtp.phone, resetOtpInput, newPassword); setResetOtp(null); setResetOtpInput(""); alert("Password yahinduwe neza."); setScreen("login"); }
+                  try { await window.agriMarketAuth.resetPassword(resetOtp.email, resetOtpInput, newPassword); setResetOtp(null); setResetOtpInput(""); alert("Password yahinduwe neza."); setScreen("login"); }
                   catch (error) { alert(`Password ntiyahinduwe: ${error.message}`); }
                   return;
                 }
