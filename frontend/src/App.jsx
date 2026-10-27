@@ -878,8 +878,15 @@ useEffect(() => {
 
   return (
     <div style={styles.app}>
-      <header style={styles.header}>
-        <h1>🌱 Agri Market</h1>
+      <header style={{ ...styles.header, background: "linear-gradient(135deg, #075b2b, #16823b)", padding: "18px 20px", textAlign: "left", boxShadow: "0 4px 16px rgba(0,0,0,.12)" }}>
+        <div style={{ maxWidth: "500px", margin: "0 auto", display: "flex", alignItems: "center", gap: "12px" }}>
+          <span role="img" aria-label="Ibendera ry'u Rwanda" style={{ fontSize: "32px" }}>🇷🇼</span>
+          <div style={{ flex: 1 }}>
+            <h1 style={{ margin: 0, fontSize: "23px", letterSpacing: ".2px" }}>Agri Market</h1>
+            <div style={{ fontSize: "12px", opacity: .9, marginTop: "3px" }}>Isoko ry’ubuhinzi bw’u Rwanda</div>
+          </div>
+          <button aria-label="Notifications" onClick={() => setScreen("notifications")} style={{ background: "rgba(255,255,255,.15)", color: "white", border: "1px solid rgba(255,255,255,.25)", borderRadius: "14px", padding: "10px", fontSize: "19px", cursor: "pointer" }}>♧</button>
+        </div>
       </header>
 
       {screen === "welcome" && (
@@ -1311,34 +1318,79 @@ useEffect(() => {
       )}
 
       {screen === "home" && (
-        <div style={styles.container}>
-          <h2>{t("home")}</h2>
+        <div style={{ ...styles.container, margin: "0 auto", padding: "20px 16px", textAlign: "left" }}>
+          <div style={{ margin: "4px 0 20px" }}>
+            <p style={{ color: "#16823b", fontSize: "13px", fontWeight: 700, margin: "0 0 7px" }}>🇷🇼 ISOKO RY’UBUHINZI</p>
+            <h2 style={{ fontSize: "25px", lineHeight: 1.25, margin: "0 0 8px", color: "#153b25" }}>
+              {t("welcome")} {account.name || "kuri Agri Market"}!
+            </h2>
+            <p style={{ color: "#607166", margin: 0, fontSize: "14px" }}>
+              Shaka umusaruro, menya amakuru y’ubuhinzi kandi wongere agaciro k’ibyo uhinga.
+            </p>
+          </div>
 
-          <p>{t("welcome")} {account.name || "to Agri Market"}.</p>
-          <p>{t("yourRole")}: {role || t("user")}</p>
+          <div style={{ display: "flex", gap: "8px", marginBottom: "22px" }}>
+            <input
+              aria-label={t("search")}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") setScreen("products"); }}
+              placeholder="🔎 Shaka imyaka cyangwa ibicuruzwa..."
+              style={{ ...styles.input, flex: 1, minWidth: 0, margin: 0, borderRadius: "14px", padding: "14px 12px", border: "1px solid #dce7de", background: "#fff" }}
+            />
+            <button onClick={() => setScreen("products")} style={{ background: "#16823b", color: "#fff", border: 0, borderRadius: "14px", padding: "0 16px", fontWeight: 700, cursor: "pointer" }}>
+              Shaka
+            </button>
+          </div>
 
-          <button style={styles.button} onClick={() => setScreen("products")}>🔎 {t("search")}</button>
-          <button style={styles.button} onClick={() => setScreen("products")}>
-            {t("viewProducts")}
+          <button onClick={() => setScreen("products")} style={{ width: "100%", textAlign: "left", border: 0, borderRadius: "20px", padding: "20px", color: "#fff", background: "linear-gradient(120deg,#126b35,#22994d)", marginBottom: "22px", cursor: "pointer", boxShadow: "0 8px 20px rgba(22,130,59,.16)" }}>
+            <div style={{ fontSize: "12px", opacity: .9, marginBottom: "8px" }}>AGRI MARKET • RWANDA</div>
+            <div style={{ fontSize: "22px", fontWeight: 800, lineHeight: 1.3 }}>Umusaruro wawe, amahirwe mashya 🌾</div>
+            <div style={{ fontSize: "13px", marginTop: "8px" }}>Reba ibicuruzwa biri ku isoko →</div>
           </button>
 
-          <button style={styles.button} onClick={() => setScreen("crops")}>
-            🌱 {t("exploreCrops")}
-          </button>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+            <h3 style={{ margin: 0, color: "#183d28", fontSize: "18px" }}>Serivisi z’ingenzi</h3>
+            <span style={{ fontSize: "12px", color: "#6a7d70" }}>Agri Market</span>
+          </div>
 
-          <button style={styles.button} onClick={() => setScreen("insights")}>{t("dataInsights")}</button>
-          <button style={styles.button} onClick={() => setScreen("processing")}>{t("processing")}</button>
-          <button style={styles.button} onClick={() => setScreen("profile")}>
-            👤 {t("myProfile")}
-          </button>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "12px", marginBottom: "24px" }}>
+            <button onClick={() => setScreen("crops")} style={{ textAlign: "left", border: "1px solid #e2ece4", borderRadius: "17px", background: "#fff", padding: "16px 13px", minHeight: "135px", cursor: "pointer", color: "#1a3b28" }}>
+              <div style={{ fontSize: "29px", marginBottom: "10px" }}>🌱</div>
+              <strong style={{ display: "block", fontSize: "15px" }}>Smart Crop Recommendations</strong>
+              <span style={{ display: "block", fontSize: "12px", color: "#68786d", marginTop: "6px", lineHeight: 1.5 }}>Reba imyaka n’ibihe by’ihinga</span>
+            </button>
+            <button onClick={() => setScreen("insights")} style={{ textAlign: "left", border: "1px solid #e2ece4", borderRadius: "17px", background: "#fff", padding: "16px 13px", minHeight: "135px", cursor: "pointer", color: "#1a3b28" }}>
+              <div style={{ fontSize: "29px", marginBottom: "10px" }}>📊</div>
+              <strong style={{ display: "block", fontSize: "15px" }}>Data & Insights</strong>
+              <span style={{ display: "block", fontSize: "12px", color: "#68786d", marginTop: "6px", lineHeight: 1.5 }}>Amakuru y’ubuhinzi ashingiye kuri NISR</span>
+            </button>
+            <button onClick={() => setScreen("processing")} style={{ textAlign: "left", border: "1px solid #e2ece4", borderRadius: "17px", background: "#fff", padding: "16px 13px", minHeight: "135px", cursor: "pointer", color: "#1a3b28" }}>
+              <div style={{ fontSize: "29px", marginBottom: "10px" }}>🏭</div>
+              <strong style={{ display: "block", fontSize: "15px" }}>Processing & Value Addition</strong>
+              <span style={{ display: "block", fontSize: "12px", color: "#68786d", marginTop: "6px", lineHeight: 1.5 }}>Uburyo bwo gutunganya umusaruro</span>
+            </button>
+            <button onClick={() => setScreen("products")} style={{ textAlign: "left", border: "1px solid #e2ece4", borderRadius: "17px", background: "#fff", padding: "16px 13px", minHeight: "135px", cursor: "pointer", color: "#1a3b28" }}>
+              <div style={{ fontSize: "29px", marginBottom: "10px" }}>🧺</div>
+              <strong style={{ display: "block", fontSize: "15px" }}>Isoko ry’ibicuruzwa</strong>
+              <span style={{ display: "block", fontSize: "12px", color: "#68786d", marginTop: "6px", lineHeight: 1.5 }}>Shaka cyangwa ushyireho umusaruro</span>
+            </button>
+          </div>
 
-          <button style={styles.button} onClick={() => setScreen("settings")}>⚙️ {t("settings")}</button>
-          <button style={styles.button} onClick={() => setScreen("sellerDashboard")}>📦 {t("myProducts")}</button>
-          <button style={styles.button} onClick={() => setScreen("orders")}>📋 My Orders</button>
-          <button style={styles.button} onClick={() => setScreen("chat")}>💬 {t("chat")}</button>
-          <button style={styles.button} onClick={() => setScreen("notifications")}>🔔 {t("notifications")}</button>
-          <button style={styles.button} onClick={() => setScreen("help")}>❓ {t("helpSupport")}</button>
-          <button style={styles.secondaryButton} onClick={() => {
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+            <h3 style={{ margin: 0, color: "#183d28", fontSize: "18px" }}>Ibikorwa byawe</h3>
+            <span style={{ fontSize: "12px", color: "#68786d" }}>{t("yourRole")}: {role || t("user")}</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "10px", marginBottom: "18px" }}>
+            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("sellerDashboard")}>📦 {t("myProducts")}</button>
+            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("orders")}>📋 My Orders</button>
+            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("profile")}>👤 {t("myProfile")}</button>
+            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("settings")}>⚙️ {t("settings")}</button>
+            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => { setChatMode("list"); setScreen("chat"); }}>💬 {t("chat")}</button>
+            <button style={{ ...styles.secondaryButton, margin: 0, background: "#fff", border: "1px solid #dfe9e1" }} onClick={() => setScreen("help")}>❓ {t("helpSupport")}</button>
+          </div>
+
+          <button style={{ ...styles.secondaryButton, width: "100%" }} onClick={() => {
             localStorage.removeItem("agriMarketActiveAccount");
             setAccount({ name: "", phone: "", email: "", password: "", photo: "" });
             setRole("");
