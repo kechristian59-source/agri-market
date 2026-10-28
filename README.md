@@ -92,3 +92,21 @@ Requirements: Node.js 22+ and npm.
 cd frontend
 npm ci
 npm run dev
+```
+
+## Student Project Team
+
+Agri Market is a student project developed by students in the Food Science and Technology department.
+
+### Project Members
+
+- **Kubwakristu Christian** — Student, Level 2
+- **MWIZERWA Costantin** — Student, Level 2
+
+**Department:** Food Science and Technology  
+**Academic Level:** Level 2
+
+### Project Demo
+
+[Watch the Agri Market Demo](agri-market-demo.mp4)
+

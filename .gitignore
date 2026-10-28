@@ -13,3 +13,6 @@ node_modules/
 backend/add_product_update_route.py
 frontend/add_product_fields.py
 frontend/connect_add_product.py
+
+# Private student verification documents
+private-student-proof/
