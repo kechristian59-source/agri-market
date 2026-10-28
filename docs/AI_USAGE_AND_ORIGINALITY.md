@@ -22,7 +22,7 @@ The team takes responsibility for the accuracy of claims made in the submission,
 
 ## 4. Team Members
 
-- Team member 1: [Enter name as registered]
-- Team member 2: [Enter name as registered]
+- Team member 1: KUBWAKRISTU Christian
+- Team member 2: MWIZERWA Costantin
 
 **Declaration:** The team should verify this disclosure, complete the names above, and confirm that it accurately describes how AI was used before submitting it.
