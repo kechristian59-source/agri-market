@@ -1391,7 +1391,7 @@ useEffect(() => {
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") setScreen("products"); }}
               placeholder={t("searchPlaceholder")}
-              style={{ ...styles.input, flex: 1, minWidth: 0, margin: 0, borderRadius: "14px", padding: "14px 12px", border: "1px solid #dce7de", background: "#fff" }}
+              style={{ ...styles.input, flex: 1, minWidth: 0, margin: 0, borderRadius: "14px", padding: "14px 12px", border: "1px solid #dce7de", background: "#fff", color: "#111", WebkitTextFillColor: "#111", opacity: 1 }}
             />
             <button onClick={() => setScreen("products")} style={{ background: "#16823b", color: "#fff", border: 0, borderRadius: "14px", padding: "0 16px", fontWeight: 700, cursor: "pointer" }}>
               {t("searchButton")}
@@ -1403,6 +1403,57 @@ useEffect(() => {
             <div style={{ fontSize: "22px", fontWeight: 800, lineHeight: 1.3 }}>{t("promoTitle")}</div>
             <div style={{ fontSize: "13px", marginTop: "8px" }}>{t("promoLink")}</div>
           </button>
+
+          <div style={{ marginBottom: "24px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <h3 style={{ margin: 0, color: "#183d28", fontSize: "18px" }}>🌾 Products for Sale</h3>
+              <button onClick={() => setScreen("products")} style={{ border: 0, background: "transparent", color: "#16823b", fontWeight: 700, cursor: "pointer" }}>View All →</button>
+            </div>
+            {products.filter((product) => {
+              const term = searchTerm.trim().toLowerCase();
+              const harvest = product.harvestDate ? new Date(product.harvestDate) : null;
+              const available = product.status !== "Sold" &&
+                product.status !== "Unavailable" &&
+                product.availability !== "Sold" &&
+                Number(product.quantity ?? 1) > 0 &&
+                (!harvest || isNaN(harvest.getTime()) || harvest >= new Date(new Date().toDateString()));
+              const matches = !term || [product.name, product.category, product.location, product.district]
+                .some(value => String(value || "").toLowerCase().includes(term));
+              return available && matches;
+            }).slice(0, 6).length === 0 ? (
+              <div style={{ padding: "22px 14px", textAlign: "center", background: "#f5f9f5", borderRadius: "14px", color: "#68786d" }}>
+                No products available right now.
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "12px" }}>
+                {products.filter((product) => {
+                  const term = searchTerm.trim().toLowerCase();
+                  const harvest = product.harvestDate ? new Date(product.harvestDate) : null;
+                  const available = product.status !== "Sold" &&
+                    product.status !== "Unavailable" &&
+                    product.availability !== "Sold" &&
+                    Number(product.quantity ?? 1) > 0 &&
+                    true;
+                  const matches = !term || [product.name, product.category, product.location, product.district]
+                    .some(value => String(value || "").toLowerCase().includes(term));
+                  return available && matches;
+                }).slice(0, 6).map((product) => (
+                  <button key={product.id} onClick={() => { setSelectedProduct(product); setScreen("productDetails"); }}
+                    style={{ textAlign: "left", padding: "12px", border: "1px solid #e2ece4", borderRadius: "15px", background: "#fff", cursor: "pointer", color: "#183d28", minWidth: 0 }}>
+                    {product.photo ? (
+                      <img src={product.photo} alt={product.name} style={{ width: "100%", height: "105px", objectFit: "cover", borderRadius: "10px", marginBottom: "9px" }} />
+                    ) : (
+                      <div style={{ width: "100%", height: "105px", borderRadius: "10px", background: "#edf5ed", display: "grid", placeItems: "center", fontSize: "38px", marginBottom: "9px" }}>🌾</div>
+                    )}
+                    <strong style={{ display: "block", fontSize: "14px", overflowWrap: "anywhere" }}>{product.name}</strong>
+                    <span style={{ display: "block", color: "#16823b", fontWeight: 700, fontSize: "13px", marginTop: "5px" }}>{product.price}</span>
+                    <span style={{ display: "block", color: "#68786d", fontSize: "11px", marginTop: "5px" }}>📍 {product.location || product.district || "Rwanda"}</span>
+                    <span style={{ display: "block", color: "#16823b", fontSize: "12px", fontWeight: 700, marginTop: "8px" }}>View Details →</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <h3 style={{ margin: 0, color: "#183d28", fontSize: "18px" }}>{t("keyServices")}</h3>

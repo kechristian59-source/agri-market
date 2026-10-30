@@ -109,3 +109,7 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* Keep form text readable in both light and dark browser modes */
+input, textarea, select { color: #111 !important; -webkit-text-fill-color: #111 !important; background-color: #fff !important; color-scheme: light; }
+input::placeholder, textarea::placeholder { color: #666 !important; -webkit-text-fill-color: #666 !important; opacity: 1; }
